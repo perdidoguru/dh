@@ -694,6 +694,8 @@ function Tab.__create(window, name, icon, button, page)
         page        = page,
         --// values
         order       = 0,
+        --// objects
+        window = window,
     }
 
     return self
@@ -803,6 +805,11 @@ function Tab:AddToggle(info)
         element:Call()
     end)
 
+    --// initialize
+    table.insert(self.__intern.window.__intern.initializeCallbacks, function()
+        element:Call(active)
+    end)
+
     return element
 end
 
@@ -891,6 +898,11 @@ function Tab:AddSlider(info)
         })
     end)
 
+    --// initialize
+    table.insert(self.__intern.window.__intern.initializeCallbacks, function()
+        element:Call(value)
+    end)
+
     return element
 end
 
@@ -907,10 +919,7 @@ function Tab:AddKeybind(info)
         isSettingKey = false
     }
 
-    -- Update the key display initially
-    keyDisplayLabel.Text = tostring(element.Key.Name)
-
-    -- Function to handle key press/release state
+    --// methods
     local function handleKeyState(isPressed)
         if element.Callback then
             element.Callback(isPressed)
@@ -941,21 +950,21 @@ function Tab:AddKeybind(info)
     end)
 
     guiElement.MouseButton1Down:Connect(function()
-        if element.isSettingKey then return end -- Prevent re-entering key setting mode
+        if element.isSettingKey then return end
 
         element.isSettingKey = true
         local originalKeyText = keyDisplayLabel.Text
-        keyDisplayLabel.Text = "..." -- Changed to "..."
-        titleLabel.TextTransparency = .5 -- Dim title while setting key
+        keyDisplayLabel.Text = "..."
+        titleLabel.TextTransparency = .5
 
         local inputConnection
         inputConnection = UserInputService.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.Keyboard then
                 element.Key = input.KeyCode
-                keyDisplayLabel.Text = tostring(input.KeyCode.Name) -- Display only key name
-                titleLabel.TextTransparency = 0 -- Restore title transparency
+                keyDisplayLabel.Text = tostring(input.KeyCode.Name)
+                titleLabel.TextTransparency = 0
                 element.isSettingKey = false
-                if element.ChangedCallback then -- Call ChangedCallback when keybind is altered
+                if element.ChangedCallback then
                     element.ChangedCallback(element.Key)
                 end
                 inputConnection:Disconnect()
@@ -963,18 +972,25 @@ function Tab:AddKeybind(info)
         end)
     end)
 
-    -- Global input listener for the keybind itself (when active)
     UserInputService.InputBegan:Connect(function(input)
         if input.KeyCode == element.Key and not element.isSettingKey then
-            handleKeyState(true) -- Key is pressed
+            handleKeyState(true)
         end
     end)
 
     UserInputService.InputEnded:Connect(function(input)
         if input.KeyCode == element.Key and not element.isSettingKey then
-            handleKeyState(false) -- Key is released
+            handleKeyState(false)
         end
     end)
+
+    --// initialize
+    table.insert(self.__intern.window.__intern.initializeCallbacks, function()
+        if element.Callback then element.Callback(false) end
+        if element.ChangedCallback then element.ChangedCallback(element.Key) end
+    end)
+
+    keyDisplayLabel.Text = tostring(element.Key.Name)
 
     return element
 end
@@ -1008,7 +1024,8 @@ function Window.__create(info)
         mainLayout      = mainLayout,
         --// objects
         tabObjects      = {},
-        toggleKeybind   = info.ToggleKeybind or Enum.KeyCode.M
+        toggleKeybind   = info.ToggleKeybind or Enum.KeyCode.M,
+        initializeCallbacks = {},
     }
 
     local dragArea = Instance.new("Frame", window)
@@ -1092,6 +1109,15 @@ end
 
 function Window:SetToggleKeybind(keycode)
     self.__intern.toggleKeybind = keycode
+end
+
+function Window:InitializeConfig()
+    local callbacks = self.__intern.initializeCallbacks
+
+    for _, func in callbacks do
+        func()
+        table.remove(callbacks, table.find(callbacks, func))
+    end
 end
 
 --// Worker.lua
