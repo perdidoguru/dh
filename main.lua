@@ -1101,9 +1101,7 @@ Worker.__index = Worker
 function Worker.__newindex(self, index, value)
     rawset(self, index, value)
 
-    if typeof(self.Changes[index]) ~= "function" then
-        return
-    else
+    if self.Changes and typeof(self.Changes[index]) == "function" then
         self.Changes[index](value)
     end
 end
@@ -1111,11 +1109,11 @@ end
 function Worker.__create()
     local self = setmetatable({}, Worker)
 
-    self.__intern = {
+    rawset(self, "__intern", {
         connections = {},
-    }
+    })
 
-    self.Changes = {}
+    rawset(self, "Changes", {})
 
     return self
 end
