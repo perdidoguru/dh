@@ -1120,7 +1120,7 @@ end
 
 function Worker:Connect(label: string, event: RBXScriptSignal, callback: (any) -> nil)
     if self.__intern.connections[label] then
-        error("Attemp to recreate an existing connection label", label)
+        error(`Attemp to recreate an existing connection label {label}`)
     end
 
     self.__intern.connections[label] = event:Connect(callback)
