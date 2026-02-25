@@ -5,9 +5,8 @@ DASH HUB Library by guru
 ]]
 
 --// Core
-local isStudio = false --game:GetService("RunService"):IsStudio()
 local LucideIcons = loadstring( game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/src/Icons.lua") )()
-local CoreGui = not isStudio and game:GetService("CoreGui") or game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -93,7 +92,9 @@ end
 
 --// Components.lua
 local function buildWindow()
-    local screenGui = build("ScreenGui", CoreGui)
+    local screenGui = build("ScreenGui", CoreGui, {
+        ResetOnSpawn = false
+    })
 
     local window = build("Frame", screenGui, {
         Size = UDim2.new(0, 600, 0, 340),
@@ -979,7 +980,6 @@ function Tab:AddKeybind(info)
 end
 
 
-local UserInputService = game:GetService("UserInputService")
 --// Window.lua
 local Window = {}
 Window.__index = Window
@@ -1013,8 +1013,8 @@ function Window.__create(info)
 
     local dragArea = Instance.new("Frame", window)
     dragArea.Name = "DragArea"
-    dragArea.Size = UDim2.new(1, ct.Padding*2, 0, header.Size.Y.Offset+ct.Padding*2)
-    dragArea.Position = UDim2.new(0, -ct.Padding, 0, -ct.Padding)
+    dragArea.Size = UDim2.new(1, (ct.Padding+10)*2, 0, header.Size.Y.Offset+(ct.Padding)*2)
+    dragArea.Position = UDim2.new(0, -(ct.Padding+10), 0, -(ct.Padding+10))
     dragArea.BackgroundTransparency = 1
     dragArea.ZIndex = 10
 
