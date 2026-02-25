@@ -765,7 +765,11 @@ function Tab:AddToggle(info)
     local active = info.Default or false
 
     function element:Call(state)
-        active = typeof(state) ~= "nil" and state or not active
+        if typeof(state) ~= "nil" then
+            active = state
+        else
+            active = not active
+        end
 
         if active then
             animate(scale, .2, {
