@@ -24,12 +24,12 @@ Library.Themes = {
 	["Default"] = {
 		TabButtonSize = 54,
 		Padding = 16,
-		BackgroundColor = Color3.fromHex("030a1c"),
-		PanelsColor = Color3.fromHex("030a1c"),
-		BorderColor = Color3.fromHex("60A5FA"),
-		AccentColor = Color3.fromHex("#162948"),
-		PrimaryFontColor = Color3.fromHex("e5e7eb"),
-		SecondaryFontColor = Color3.fromHex("9ca3af"),
+		BackgroundColor = Color3.fromHex("#040c1f"),
+		PanelsColor = Color3.fromHex("#040c1f"),
+		BorderColor = Color3.fromHex("#0073ff"),
+		AccentColor = Color3.fromHex("#103168"),
+		PrimaryFontColor = Color3.fromHex("#e5e7eb"),
+		SecondaryFontColor = Color3.fromHex("#9ca3af"),
 		PrimaryRoundedCornerRadius = UDim.new(0,12),
 	}
 }
@@ -104,10 +104,10 @@ local function buildWindow()
     })
 
     build("UIPadding", window, {
-        PaddingTop = UDim.new(0, ct.Padding),
-        PaddingBottom = UDim.new(0, ct.Padding),
-        PaddingLeft = UDim.new(0, ct.Padding),
-        PaddingRight = UDim.new(0, ct.Padding),
+        PaddingTop = UDim.new(0, ct.Padding+10),
+        PaddingBottom = UDim.new(0, ct.Padding+10),
+        PaddingLeft = UDim.new(0, ct.Padding+10),
+        PaddingRight = UDim.new(0, ct.Padding+10),
     })
 
     return window
@@ -145,15 +145,16 @@ local function buildHeader(window)
         BackgroundTransparency = 1,
     })
 
-    build("ImageButton", header, {
+    local miniminizeButton = build("ImageButton", header, {
         Size = UDim2.new(0, 24, 0, 24),
         AnchorPoint = Vector2.new(1,.5),
         Position = UDim2.new(1, -3, .5, -1),
         BackgroundTransparency = 1,
         Image =  LucideIcons and LucideIcons.assets["lucide-minus"] or "",
+        ZIndex = 11,
     })
 
-    return header, title, subtitle
+    return header, title, subtitle, miniminizeButton
 end
 
 local function buildTabsList(window)
@@ -490,7 +491,7 @@ local function buildSlider(tab, info)
     tab.__intern.order += 1
 
     local list = Instance.new("Frame", div)
-    list.Size = UDim2.new(1,-32,0,0)
+    list.Size = UDim2.new(1,-172,0,0)
     list.AutomaticSize = Enum.AutomaticSize.Y
     list.BackgroundTransparency = 1
 
@@ -598,6 +599,85 @@ local function buildSlider(tab, info)
     label.Text = info.Default or 50
 
     return div, visual, fill, current, area, label
+end
+
+local function buildKeybind(tab, info)
+    --// div (main container for the keybind)
+    local div = Instance.new("TextButton")
+    div.Text = ""
+    div.Size = UDim2.new(1, 0, 0, 0)
+    div.BackgroundTransparency = 1
+    div.AutomaticSize = Enum.AutomaticSize.Y
+    div.LayoutOrder = tab.__intern.order
+    div.BackgroundColor3 = ct.BorderColor -- This will be used for hover/active state
+    tab.__intern.order += 1
+
+    -- Container for title and description, respecting the -32 width
+    local textContainer = Instance.new("Frame", div)
+    textContainer.Size = UDim2.new(1, -96, 0, 0) -- Full width minus 32 for key display
+    textContainer.AutomaticSize = Enum.AutomaticSize.Y
+    textContainer.BackgroundTransparency = 1
+    textContainer.Position = UDim2.new(0, 0, 0, 0)
+
+    local textLayout = Instance.new("UIListLayout", textContainer)
+    textLayout.FillDirection = Enum.FillDirection.Vertical
+    textLayout.Padding = UDim.new(0, 4)
+
+    --// extra padding for the main div
+    local padding = Instance.new("UIPadding", div)
+    padding.PaddingLeft = UDim.new(0,12)
+    padding.PaddingRight = UDim.new(0,12)
+    padding.PaddingTop = UDim.new(0,8)
+    padding.PaddingBottom = UDim.new(0,8)
+
+    local corner = Instance.new("UICorner", div)
+    corner.CornerRadius = ct.PrimaryRoundedCornerRadius
+
+    local stroke = Instance.new("UIStroke", div)
+    stroke.Transparency = 1
+    stroke.Color = ct.BorderColor
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+    --// title
+    local title = Instance.new("TextLabel", textContainer)
+    title.Text = info.Title
+    title.TextSize = 14
+    title.TextWrapped = true
+    title.Font = Enum.Font.GothamMedium
+    title.BackgroundTransparency = 1
+    title.Size = UDim2.new(1, 0, 0, title.TextBounds.Y)
+    title.TextColor3 = ct.PrimaryFontColor
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.AutomaticSize = Enum.AutomaticSize.Y
+
+    --// description
+    local content = Instance.new("TextLabel", textContainer)
+    content.Text = info.Description
+    content.TextSize = 12
+    content.TextWrapped = true
+    content.Font = Enum.Font.GothamMedium
+    content.BackgroundTransparency = 1
+    content.Size = UDim2.new(1, 0, 0, content.TextBounds.Y)
+    content.TextColor3 = ct.SecondaryFontColor
+    content.TextTransparency = .5
+    content.TextXAlignment = Enum.TextXAlignment.Left
+    content.AutomaticSize = Enum.AutomaticSize.Y
+
+    -- Key display label
+    local keyLabel = Instance.new("TextLabel", div)
+    keyLabel.Name = "KeyDisplay"
+    keyLabel.Text = tostring(info.Default and info.Default.Name or "...")
+    keyLabel.TextSize = 14
+    keyLabel.Font = Enum.Font.GothamMedium
+    keyLabel.TextColor3 = ct.SecondaryFontColor -- Changed to secondaryfontcolor
+    keyLabel.BackgroundTransparency = 1
+    keyLabel.Size = UDim2.new(0, 0, 1, 0) -- Auto size X, full height
+    keyLabel.AutomaticSize = Enum.AutomaticSize.X
+    keyLabel.Position = UDim2.new(1, -12, 0.5, 0) -- Position to the right, with padding
+    keyLabel.AnchorPoint = Vector2.new(1, 0.5)
+    keyLabel.TextXAlignment = Enum.TextXAlignment.Right
+
+    return div, title, keyLabel
 end
 
 --// Tab.lua
@@ -813,6 +893,93 @@ function Tab:AddSlider(info)
     return element
 end
 
+function Tab:AddKeybind(info)
+    --// gui element
+    local guiElement, titleLabel, keyDisplayLabel = buildKeybind(self, info)
+    guiElement.Parent = self.__intern.page
+
+    --// element
+    local element = {
+        Callback = info.Callback, -- For key press state (true/false)
+        ChangedCallback = info.ChangedCallback, -- For when the keybind itself changes
+        Key = info.Default or Enum.KeyCode.Unknown,
+        isSettingKey = false
+    }
+
+    -- Update the key display initially
+    keyDisplayLabel.Text = tostring(element.Key.Name)
+
+    -- Function to handle key press/release state
+    local function handleKeyState(isPressed)
+        if element.Callback then
+            element.Callback(isPressed)
+        end
+    end
+
+    --// connections
+    guiElement.MouseEnter:Connect(function()
+        if not element.isSettingKey then
+            animate(guiElement, .2, {
+                BackgroundTransparency = .975
+            })
+            animate(guiElement.UIStroke, .2, {
+                Transparency = .95
+            })
+        end
+    end)
+
+    guiElement.MouseLeave:Connect(function()
+        if not element.isSettingKey then
+            animate(guiElement, .2, {
+                BackgroundTransparency = 1
+            })
+            animate(guiElement.UIStroke, .2, {
+                Transparency = 1
+            })
+        end
+    end)
+
+    guiElement.MouseButton1Down:Connect(function()
+        if element.isSettingKey then return end -- Prevent re-entering key setting mode
+
+        element.isSettingKey = true
+        local originalKeyText = keyDisplayLabel.Text
+        keyDisplayLabel.Text = "..." -- Changed to "..."
+        titleLabel.TextTransparency = .5 -- Dim title while setting key
+
+        local inputConnection
+        inputConnection = UserInputService.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Keyboard then
+                element.Key = input.KeyCode
+                keyDisplayLabel.Text = tostring(input.KeyCode.Name) -- Display only key name
+                titleLabel.TextTransparency = 0 -- Restore title transparency
+                element.isSettingKey = false
+                if element.ChangedCallback then -- Call ChangedCallback when keybind is altered
+                    element.ChangedCallback(element.Key)
+                end
+                inputConnection:Disconnect()
+            end
+        end)
+    end)
+
+    -- Global input listener for the keybind itself (when active)
+    UserInputService.InputBegan:Connect(function(input)
+        if input.KeyCode == element.Key and not element.isSettingKey then
+            handleKeyState(true) -- Key is pressed
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(input)
+        if input.KeyCode == element.Key and not element.isSettingKey then
+            handleKeyState(false) -- Key is released
+        end
+    end)
+
+    return element
+end
+
+
+local UserInputService = game:GetService("UserInputService")
 --// Window.lua
 local Window = {}
 Window.__index = Window
@@ -821,23 +988,74 @@ function Window.__create(info)
     local self = setmetatable({}, Window)
 
     local window = buildWindow()
-    local header, title, subtitle = buildHeader(window)
+    local header, title, subtitle, miniminizeButton = buildHeader(window)
     local tabs, tabsLayout = buildTabsList(window)
     local mainFrame, mainLayout = buildMainFrame(window)
 
+    local isDragging = false
+    local dragStartPos = Vector2.new(0, 0)
+    local initialWindowPos = UDim2.new(0, 0, 0, 0)
+
     self.__intern = {
-        --// Gui
-        window      = window,
-        header      = header,
-        title       = title,
-        subtitle    = subtitle,
-        tabs        = tabs,
-        tabsLayout  = tabsLayout,
-        mainFrame   = mainFrame,
-        mainLayout  = mainLayout,
-        --// Objects
-        tabObjects  = {},
+        --// gui
+        window          = window,
+        header          = header,
+        title           = title,
+        subtitle        = subtitle,
+        tabs            = tabs,
+        tabsLayout      = tabsLayout,
+        mainFrame       = mainFrame,
+        mainLayout      = mainLayout,
+        --// objects
+        tabObjects      = {},
+        toggleKeybind   = info.ToggleKeybind or Enum.KeyCode.M
     }
+
+    local dragArea = Instance.new("Frame", window)
+    dragArea.Name = "DragArea"
+    dragArea.Size = UDim2.new(1, ct.Padding*2, 0, header.Size.Y.Offset+ct.Padding*2)
+    dragArea.Position = UDim2.new(0, -ct.Padding, 0, -ct.Padding)
+    dragArea.BackgroundTransparency = 1
+    dragArea.ZIndex = 10
+
+    dragArea.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            isDragging = true
+            dragStartPos = UserInputService:GetMouseLocation()
+            initialWindowPos = window.Position
+            input:Capture()
+        end
+    end)
+
+    UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
+        if gameProcessedEvent then return end
+
+        if input.KeyCode == self.__intern.toggleKeybind then
+            window.Visible = not window.Visible
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local currentMousePos = UserInputService:GetMouseLocation()
+            local delta = currentMousePos - dragStartPos
+
+            window.Position = UDim2.new(
+                initialWindowPos.X.Scale, initialWindowPos.X.Offset + delta.X,
+                initialWindowPos.Y.Scale, initialWindowPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            isDragging = false
+        end
+    end)
+
+    miniminizeButton.MouseButton1Click:Connect(function()
+        window.Visible = false
+    end)
 
     return self
 end
@@ -846,7 +1064,10 @@ function Window:InsertTab(name, icon)
     local tabButton, tabPage = buildTabAndPage(name, icon, self.__intern.tabsLayout, self.__intern.mainFrame)
     local tab = Tab.__create(self, name, icon, tabButton, tabPage)
 
-    self.__intern.tabObjects[name] = tab --! falta verifica├º├úo se existe
+    if self.__intern.tabObjects[name] then
+        error("Attempt to recreate an existing tab", name)
+    end
+    self.__intern.tabObjects[name] = tab
 
     tabButton.MouseButton1Down:Connect(function()
         self:SetActiveTab(tab)
@@ -863,17 +1084,75 @@ function Window:SetActiveTab(tab)
         end
 
         self.__intern.mainLayout:JumpTo(tab.__intern.page)
-        
+
         tab.__intern.button.ImageTransparency = 0
         tab.__intern.button.Parent.BackgroundTransparency = .95
     end)
 end
 
---// Main.lua
---// Methods
-function Library:CreateWindow(info)
-    return Window.__create(info)
+function Window:SetToggleKeybind(keycode)
+    self.__intern.toggleKeybind = keycode
 end
 
---// Export
+--// Worker.lua
+local Worker = {}
+Worker.__index = Worker
+
+function Worker.__newindex(self, index, value)
+    rawset(self, index, value)
+
+    if typeof(self.Changes[index]) ~= "function" then
+        return
+    else
+        self.Changes[index](value)
+    end
+end
+
+function Worker.__create()
+    local self = setmetatable({}, Worker)
+
+    self.__intern = {
+        connections = {},
+    }
+
+    self.Changes = {}
+
+    return self
+end
+
+function Worker:Connect(label: string, event: RBXScriptSignal, callback: (any) -> nil)
+    if self.__intern.connections[label] then
+        error("Attemp to recreate an existing connection label", label)
+    end
+
+    self.__intern.connections[label] = event:Connect(callback)
+end
+
+function Worker:Disconnect(label: string)
+    if self.__intern.connections[label] then
+        self.__intern.connections[label]:Disconnect()
+        self.__intern.connections[label] = nil
+    end
+end
+
+function Worker:Destroy()
+    for _, value in self.__intern.connections do
+        value:Disconnect()
+    end
+
+    self.__intern = nil
+
+    setmetatable(self, nil)
+end
+
+--// Main.lua
+function Library:CreateWindow(info)
+    return Window.__create(info or {})
+end
+
+function Library:CreateWorker()
+    return Worker.__create()
+end
+
+--// Footer.lua
 return Library
