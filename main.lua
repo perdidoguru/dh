@@ -1116,12 +1116,11 @@ function Window:SetToggleKeybind(keycode)
 end
 
 function Window:InitializeConfig()
-    local callbacks = self.__intern.initializeCallbacks
-
-    for _, func in callbacks do
+    for _, func in self.__intern.initializeCallbacks do
         func()
-        table.remove(callbacks, table.find(callbacks, func))
     end
+
+    table.clear(self.__intern.initializeCallbacks)
 end
 
 --// Worker.lua
